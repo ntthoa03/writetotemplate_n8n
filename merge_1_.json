@@ -1,0 +1,190 @@
+{
+  "name": "merge_excel_no_code_form",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "merge-excel-form",
+        "formTitle": "Gop file Excel theo template",
+        "formDescription": "Chon 1 template va co the chon nhieu file du lieu 1 luc, sau do bam Submit de tai file ket qua.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Template (.xls/.xlsx)",
+              "fieldType": "file",
+              "requiredField": true,
+              "acceptFileTypes": ".xls,.xlsx",
+              "multipleFiles": false
+            },
+            {
+              "fieldLabel": "Du lieu (.xls/.xlsx/.csv) - chon nhieu file",
+              "fieldType": "file",
+              "requiredField": true,
+              "acceptFileTypes": ".xls,.xlsx,.csv",
+              "multipleFiles": true
+            },
+            {
+              "fieldLabel": "Ten file ket qua",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "Ket_qua_Tong_Hop.xlsx"
+            },
+            {
+              "fieldLabel": "Thu muc luu tren may n8n",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "C:\\\\Users\\\\nghoa\\\\Downloads\\\\ket_qua_merge"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f7a4f7f0-f13d-43ca-8b33-3105de8be001",
+      "name": "Form upload file",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        320
+      ],
+      "webhookId": "merge-excel-form"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "api_base",
+              "value": "https://YOUR-APP.onrender.com",
+              "type": "string"
+            },
+            {
+              "name": "output_filename",
+              "value": "={{ $json['Ten file ket qua'] || 'Ket_qua_Tong_Hop.xlsx' }}",
+              "type": "string"
+            },
+            {
+              "name": "save_dir",
+              "value": "={{ $json['Thu muc luu tren may n8n'] || 'C:\\\\Users\\\\nghoa\\\\Downloads\\\\ket_qua_merge' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c580eb0-c95c-4f1c-9c9e-2f8190bdc002",
+      "name": "Cau hinh API",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.api_base + '/process-excel-upload' }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "output_filename",
+              "value": "={{ $json.output_filename }}"
+            },
+            {
+              "name": "template_file",
+              "parameterType": "formBinaryData",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).find(k => /template/i.test(k)) || '' }}"
+            },
+            {
+              "name": "data_files",
+              "parameterType": "formBinaryData",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).find(k => !/template/i.test(k)) || '' }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "f94e64f1-f1ef-4b84-b2c6-8940b3f2f003",
+      "name": "Gui file sang API Render",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        60,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.save_dir + '\\\\' + ($json.output_filename || 'Ket_qua_Tong_Hop.xlsx') }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "31f4c8d8-02f9-4aa8-a2d2-6bc8c22f9001",
+      "name": "Luu file vao may",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        300,
+        320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form upload file": {
+      "main": [
+        [
+          {
+            "node": "Cau hinh API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cau hinh API": {
+      "main": [
+        [
+          {
+            "node": "Gui file sang API Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gui file sang API Render": {
+      "main": [
+        [
+          {
+            "node": "Luu file vao may",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Luu file vao may": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "filesystem"
+  },
+  "versionId": "form-no-code-v1",
+  "id": "merge-form-flow",
+  "tags": []
+}

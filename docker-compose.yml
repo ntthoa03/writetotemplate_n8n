@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  excel-processor:
+    build: .
+    container_name: n8n-excel-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Map thư mục data trên Windows vào /app/data trong container
+      - ./data:/app/data
+    restart: unless-stopped
